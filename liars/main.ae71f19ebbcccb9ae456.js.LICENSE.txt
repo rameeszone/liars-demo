@@ -1,0 +1,23 @@
+/*! ./app/main.ts */
+
+/*! @babel/polyfill */
+
+/*! ModuleConcatenation bailout: Cannot concat with ../node_modules/howler/dist/howler.js (<- Module is not an ECMAScript module) */
+
+/*! ModuleConcatenation bailout: Cannot concat with ../node_modules/phaser/dist/phaser.js (<- Module is not an ECMAScript module) */
+
+/*! ModuleConcatenation bailout: Module is not an ECMAScript module */
+
+/*! all exports used */
+
+/*! exports provided: game */
+
+/*! no static exports found */
+
+/*!**********************************!*\
+  !*** ./app/main.ts + 10 modules ***!
+  \**********************************/
+
+/*!*******************************************!*\
+  !*** multi @babel/polyfill ./app/main.ts ***!
+  \*******************************************/
