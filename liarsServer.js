@@ -1,6 +1,6 @@
 const http = require("http");
 const WebSocketServer = require("websocket").server;
-let socketPort = 30008;
+let socketPort = 3001;
 const expressPort = 3000;
 
 const server = http.createServer();

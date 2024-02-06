@@ -6,7 +6,7 @@ var url = new URL(window.location.href);
 async function runSocket(game) {
 
     gameScene = game;
-    gameClient = new WebSocket('ws://localhost:30008');
+    gameClient = new WebSocket('ws://localhost:3001');
     //gameClient.connect();
 
 
