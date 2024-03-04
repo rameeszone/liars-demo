@@ -1,7 +1,8 @@
 const http = require("http");
 const WebSocketServer = require("websocket").server;
-let socketPort = 3001;
+
 const expressPort = 3000;
+let socketPort = 3001;
 
 const server = http.createServer();
 server.listen(socketPort);
@@ -147,7 +148,6 @@ wsServer.on("request", function (request) {
               clearInterval(gameRoom[connection.roomName]["gameTimer"]);
 
               if (response.bid > gameRoom[connection.roomName]["currentBid"]) {
-                console.log("Bid by : ", connection.seatId);
 
                 gameRoom[connection.roomName]["lastBidder"] = connection.seatId;
                 gameRoom[connection.roomName]["currentBid"] = response.bid;
@@ -160,6 +160,7 @@ wsServer.on("request", function (request) {
                 reply.newTurn = findNextTurn(connection.roomName, gameRoom[connection.roomName]["currentTurn"]);
                 reply.newPlayerName = gameRoom[connection.roomName][reply.newTurn].name;
                 reply.allDiceLength = gameRoom[connection.roomName]["allDice"].length;
+
 
                 for (var j = 0; j < gameRoom[connection.roomName].length; j++) {
                   reply.dice = gameRoom[connection.roomName][j].dice;
@@ -218,7 +219,6 @@ function startDiceRolling_fn(roomName) {
   gameRoom[roomName]["allDice"] = [];
   gameRoom[roomName]["currentBid"] = 11;
 
-
   var players = [];
   for (var i = 0; i < gameRoom[roomName].length; i++) {
 
@@ -242,9 +242,9 @@ function startDiceRolling_fn(roomName) {
   reply.round = gameRoom[roomName]["gameRound"];
   reply.bidPos = gameRoom[roomName]["currentBid"];
   reply.players = players;
+  
 
   for (var i = 0; i < gameRoom[roomName].length; i++) {
-
     for (var n = 0; n < gameRoom[roomName][i].diceLength; n++) {
       gameRoom[roomName][i].dice[n] = 1 + Math.floor(Math.random() * 6);
       gameRoom[roomName]["allDice"].push(gameRoom[roomName][i].dice[n]);
@@ -275,6 +275,7 @@ function startGame_fn(roomName) {
     reply0.diceLength = gameRoom[roomName][i].diceLength;
     reply0.rip = gameRoom[roomName][i].rip;
     players.push(reply0);
+
   }
 
   var reply = new Object();
@@ -295,18 +296,21 @@ function startGame_fn(roomName) {
     noResponse(roomName);
   }, 20000);
 
+
 }
+
 
 
 function noResponse(roomName) {
   clearInterval(gameRoom[roomName]["gameTimer"]);
 
-  if (gameRoom[roomName]["currentBid"] == 126) {
+  if (gameRoom[roomName]["currentBid"] == 126 || gameRoom[roomName]["currentBid"] == ((gameRoom[roomName]["allDice"].length*10)+6)) {
     checkWinning_fn(roomName);
   } else {
 
     gameRoom[roomName]["lastBidder"] = gameRoom[roomName]["currentTurn"];
     gameRoom[roomName]["currentBid"] = nextAutoPlay(roomName, gameRoom[roomName]["currentBid"]);
+
 
     var reply = new Object();
     reply.action = "newTurn";
@@ -352,6 +356,7 @@ function checkWinning_fn(roomName) {
   var dice = gameRoom[roomName]["currentBid"] % 10;
   var liar = true;
   var dicecount = 0;
+  var message = "";
 
   for (var i = 0; i < gameRoom[roomName]["allDice"].length; i++) {
     if (gameRoom[roomName]["allDice"][i] == 1 || gameRoom[roomName]["allDice"][i] == dice) {
@@ -363,17 +368,29 @@ function checkWinning_fn(roomName) {
 
   if (dicecount >= no) {
     liar = false;
-    gameRoom[roomName][gameRoom[roomName]["currentTurn"]].diceLength--;
+    gameRoom[roomName][gameRoom[roomName]["currentTurn"]].rip = true;
+    gameRoom[roomName][gameRoom[roomName]["currentTurn"]].diceLength = 0;
+
+    gameRoom[roomName]["currentTurn"] = gameRoom[roomName]["lastBidder"];
+
+/*     gameRoom[roomName][gameRoom[roomName]["currentTurn"]].diceLength--;
     if (gameRoom[roomName][gameRoom[roomName]["currentTurn"]].diceLength == 0) {
       gameRoom[roomName][gameRoom[roomName]["currentTurn"]].rip = true;
-    }
+    } */
+
+    message = "Liar "
 
   } else {
 
-    gameRoom[roomName][gameRoom[roomName]["lastBidder"]].diceLength--;
+    gameRoom[roomName][gameRoom[roomName]["lastBidder"]].rip = true;
+    gameRoom[roomName][gameRoom[roomName]["lastBidder"]].diceLength = 0;
+
+/*     gameRoom[roomName][gameRoom[roomName]["lastBidder"]].diceLength--;
     if (gameRoom[roomName][gameRoom[roomName]["lastBidder"]].diceLength == 0) {
       gameRoom[roomName][gameRoom[roomName]["lastBidder"]].rip = true;
-    }
+    } */
+
+    message = "honest "
   }
 
   var players = [];
@@ -388,15 +405,22 @@ function checkWinning_fn(roomName) {
     players.push(reply0);
   }
 
+
   var reply = new Object();
   reply.action = "revealCards"
+  reply.dice = dice;
   reply.liar = liar;
+  reply.message = message;
   reply.turn = gameRoom[roomName]["currentTurn"];
   reply.lastPlayer = gameRoom[roomName][gameRoom[roomName]["lastBidder"]].name;
   reply.activePlayerName = gameRoom[roomName][gameRoom[roomName]["currentTurn"]].name;
   reply.round = gameRoom[roomName]["gameRound"];
   reply.bidPos = gameRoom[roomName]["currentBid"];
   reply.players = players;
+  reply.bidNo = no;
+  reply.calledDice = dice;
+  reply.diceCount = dicecount;
+
 
   for (var i = 0; i < gameRoom[roomName].length; i++) {
     reply.dice = gameRoom[roomName][i].dice;

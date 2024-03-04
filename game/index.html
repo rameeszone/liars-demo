@@ -1,0 +1,27 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><script src="//cdn.jsdelivr.net/npm/neffos.js@latest/dist/neffos-es5.js"></script><script src="//cdnjs.cloudflare.com/ajax/libs/websocket/1.0.31/websocket.js"></script><title>Ludo</title><style>* {
+                padding: 0;
+                margin: 0;
+            }
+
+            html,
+            body {
+                background-color: #2A003F;
+                font-family: "Century Gothic";
+            }
+
+            canvas {
+                margin: auto;
+                padding: 0 !important;
+                overflow: hidden !important;
+                display: block;
+                top: 0px;
+                bottom: 0px;
+                left: 0px;
+                right: 0px;
+            }</style></head><body><div id="game"></div><script>function gameCompleted(url, roomId, rank) {
+                location.replace(url+"&room_id="+roomId+"&rank="+rank);
+            }
+
+            function userTimedOut(){
+                
+            }</script><script type="text/javascript" src="vendors~main.3c880042e5b8d892639e.js"></script><script type="text/javascript" src="main.3c880042e5b8d892639e.js"></script></body></html>
