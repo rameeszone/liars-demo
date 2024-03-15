@@ -32,7 +32,7 @@ app.get('/createRoom/', (req, res) => {
   gameRoom[roomId]["gameTimer"];
   gameRoom[roomId]["gamestarted"] = false;
   gameRoom[roomId]["currentTurn"] = 0;
-  gameRoom[roomId]["currentBid"] = 11;
+  gameRoom[roomId]["currentBid"] = 1;
   gameRoom[roomId]["gameRound"] = 1;
   gameRoom[roomId]["allDice"] = [];
   gameRoom[roomId]["lastBidder"] = -1;
@@ -217,7 +217,7 @@ function startDiceRolling_fn(roomName) {
 
 
   gameRoom[roomName]["allDice"] = [];
-  gameRoom[roomName]["currentBid"] = 11;
+  gameRoom[roomName]["currentBid"] = 1;
 
   var players = [];
   for (var i = 0; i < gameRoom[roomName].length; i++) {
@@ -304,7 +304,7 @@ function startGame_fn(roomName) {
 function noResponse(roomName) {
   clearInterval(gameRoom[roomName]["gameTimer"]);
 
-  if (gameRoom[roomName]["currentBid"] == 126 || gameRoom[roomName]["currentBid"] == ((gameRoom[roomName]["allDice"].length*10)+6)) {
+  if (gameRoom[roomName]["currentBid"] == 126 || Math.floor(gameRoom[roomName]["currentBid"]/10) == (gameRoom[roomName]["allDice"].length)) {
     checkWinning_fn(roomName);
   } else {
 
@@ -337,14 +337,10 @@ function noResponse(roomName) {
 function nextAutoPlay(roomName, bidNo) {
   var no = Math.floor(gameRoom[roomName]["currentBid"] / 10);
   var dice = gameRoom[roomName]["currentBid"] % 10;
-  var newBid = bidNo;
-
-  if (dice < 6) {
-    newBid += 1;
-  } else {
-    no += 1;
-    newBid = (no * 10) + 2;
+  if(dice ==1){
+    dice = 2;
   }
+  var newBid = ((no+1)*10) + dice;
 
   return newBid;
 }
@@ -357,6 +353,7 @@ function checkWinning_fn(roomName) {
   var liar = true;
   var dicecount = 0;
   var message = "";
+  var current = gameRoom[roomName]["currentTurn"] ;
 
   for (var i = 0; i < gameRoom[roomName]["allDice"].length; i++) {
     if (gameRoom[roomName]["allDice"][i] == 1 || gameRoom[roomName]["allDice"][i] == dice) {
@@ -413,7 +410,7 @@ function checkWinning_fn(roomName) {
   reply.message = message;
   reply.turn = gameRoom[roomName]["currentTurn"];
   reply.lastPlayer = gameRoom[roomName][gameRoom[roomName]["lastBidder"]].name;
-  reply.activePlayerName = gameRoom[roomName][gameRoom[roomName]["currentTurn"]].name;
+  reply.activePlayerName = gameRoom[roomName][current].name;
   reply.round = gameRoom[roomName]["gameRound"];
   reply.bidPos = gameRoom[roomName]["currentBid"];
   reply.players = players;
@@ -429,7 +426,7 @@ function checkWinning_fn(roomName) {
 
   gameRoom[roomName]["gameTimer"] = setInterval(function () {
     checkStatus(roomName);
-  }, 7000);
+  }, 11000);
 
 }
 
