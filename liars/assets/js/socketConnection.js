@@ -65,7 +65,7 @@ async function runSocket(game) {
     // Listen for WebSocket errors
     gameClient.addEventListener('error', (event) => {
         // console.log("error called ")
-        gameScene.clearAll();
+       // gameScene.clearAll();
         if (gameScene.gameInfo.statusTxt.text != "Room filled." && gameScene.gameInfo.statusTxt.text != "Room not created.") {
             if (gameScene.seatId != null) {
                 gameScene.gameInfo.statusTxt.text = "Game over!!!";
@@ -79,7 +79,7 @@ async function runSocket(game) {
     // Connection closed
     gameClient.addEventListener('close', (event) => {
         // console.log("close called ")
-        gameScene.clearAll();
+       // gameScene.clearAll();
         if (gameScene.gameInfo.statusTxt.text != "Room filled." && gameScene.gameInfo.statusTxt.text != "Room not created.") {
             if (gameScene.seatId != null) {
                 gameScene.gameInfo.statusTxt.text = "Game over!!!";
