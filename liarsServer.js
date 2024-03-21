@@ -152,6 +152,8 @@ wsServer.on("request", function (request) {
                 gameRoom[connection.roomName]["lastBidder"] = connection.seatId;
                 gameRoom[connection.roomName]["currentBid"] = response.bid;
 
+                console.log("Last bid........... : ",connection.seatId,  gameRoom[connection.roomName][gameRoom[connection.roomName]["lastBidder"]].name)
+
                 var reply = new Object();
                 reply.action = "newTurn";
                 reply.lastPlayerName = gameRoom[connection.roomName][gameRoom[connection.roomName]["currentTurn"]].name;
@@ -275,7 +277,6 @@ function startGame_fn(roomName) {
     reply0.diceLength = gameRoom[roomName][i].diceLength;
     reply0.rip = gameRoom[roomName][i].rip;
     players.push(reply0);
-
   }
 
   var reply = new Object();
@@ -328,6 +329,8 @@ function noResponse(roomName) {
     }
 
     gameRoom[roomName]["currentTurn"] = reply.newTurn;
+    console.log("Last bid no response ....... : ",gameRoom[roomName]["currentTurn"],  gameRoom[roomName][gameRoom[roomName]["lastBidder"]].name)
+
     gameRoom[roomName]["gameTimer"] = setInterval(function () {
       noResponse(roomName);
     }, 20000);
@@ -354,6 +357,8 @@ function checkWinning_fn(roomName) {
   var dicecount = 0;
   var message = "";
   var current = gameRoom[roomName]["currentTurn"] ;
+
+  console.log("All dices : ", gameRoom[roomName]["allDice"]);
 
   for (var i = 0; i < gameRoom[roomName]["allDice"].length; i++) {
     if (gameRoom[roomName]["allDice"][i] == 1 || gameRoom[roomName]["allDice"][i] == dice) {
@@ -417,6 +422,9 @@ function checkWinning_fn(roomName) {
   reply.bidNo = no;
   reply.calledDice = dice;
   reply.diceCount = dicecount;
+
+  console.log("dicecount : ", dicecount);
+  console.log("dice      : ", dice);
 
 
   for (var i = 0; i < gameRoom[roomName].length; i++) {
