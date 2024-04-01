@@ -1,5 +1,6 @@
 const http = require("http");
 const WebSocketServer = require("websocket").server;
+const WebSocket = require('ws');
 
 const expressPort = 3000;
 let socketPort = 3001;
@@ -11,6 +12,7 @@ const wsServer = new WebSocketServer({
 });
 
 var gameRoom = [];
+var allBots = [];
 
 const express = require('express');
 const app = express();
@@ -121,7 +123,15 @@ wsServer.on("request", function (request) {
                     },
                     3000
                   );
-                }
+                }else {
+                    clearInterval(gameRoom[roomName]["gameTimer"]);
+                    gameRoom[roomName]["gameTimer"] = setInterval(
+                      function () {
+                        requestBot(roomName);
+                      },
+                      (2500 + Math.random(5000))
+                    );
+                  }
 
               } else {
 
@@ -372,26 +382,13 @@ function checkWinning_fn(roomName) {
     liar = false;
     gameRoom[roomName][gameRoom[roomName]["currentTurn"]].rip = true;
     gameRoom[roomName][gameRoom[roomName]["currentTurn"]].diceLength = 0;
-
     gameRoom[roomName]["currentTurn"] = gameRoom[roomName]["lastBidder"];
-
-/*     gameRoom[roomName][gameRoom[roomName]["currentTurn"]].diceLength--;
-    if (gameRoom[roomName][gameRoom[roomName]["currentTurn"]].diceLength == 0) {
-      gameRoom[roomName][gameRoom[roomName]["currentTurn"]].rip = true;
-    } */
-
     message = "Liar "
 
   } else {
 
     gameRoom[roomName][gameRoom[roomName]["lastBidder"]].rip = true;
     gameRoom[roomName][gameRoom[roomName]["lastBidder"]].diceLength = 0;
-
-/*     gameRoom[roomName][gameRoom[roomName]["lastBidder"]].diceLength--;
-    if (gameRoom[roomName][gameRoom[roomName]["lastBidder"]].diceLength == 0) {
-      gameRoom[roomName][gameRoom[roomName]["lastBidder"]].rip = true;
-    } */
-
     message = "honest "
   }
 
@@ -502,3 +499,125 @@ function findNextTurn(roomName, id) {
   console.log("nextId : ",nextId)
   return nextId;
 }
+
+
+
+
+function requestBot(roomName) {
+    const ws = new WebSocket("ws://" + "localhost" + ":" + 30008);
+  
+    ws.roomName = roomName;
+    ws.seatId = -1;
+    ws.timer;
+  
+    // WebSocket connection opened handling
+    ws.on('open', () => {
+      allBots.push(ws);
+      var msg = JSON.stringify({
+        action: "InitialJoin",
+        isBot: true,
+        name: "ramesh " + Math.floor(Math.random() * 100),
+        playerID: Math.floor(Math.random() * 100),
+        roomName: roomName,
+      });
+      ws.send(msg.toString()); 
+    });
+  
+    // WebSocket message handling
+    ws.on('message', (message) => {
+      // console.log(`Received from server: ${message}`);
+  
+      const responseMsg = JSON.parse(message);
+      switch (responseMsg.action) {
+  
+        case "createRoom":
+          ws.close();
+          break;
+  
+        case "seatPositions":
+          ws.seatId = responseMsg.seatId;
+          break;
+  
+        case "SeatFilled":
+          ws.close();
+          break;
+  
+        case "startGame":
+          if (ws.seatId == responseMsg.turn) {
+              ws.timer = setInterval(function () {
+              decideCallorBid(ws, responseMsg.allDiceLength, responseMsg.bidPos);
+            }, 3000 + Math.random() * 6000);
+  
+          }
+          break;
+  
+        case "newTurn":
+          if (ws.seatId == responseMsg.newTurn) {
+              ws.timer = setInterval(function () {
+              decideCallorBid(ws, responseMsg.allDiceLength, responseMsg.lastBid);
+            }, 3000 + Math.random() * 6000);
+  
+          }
+          break;
+  
+        case "revealCards":
+          break;
+  
+        case "winner":
+          ws.close();
+          break;
+      }
+  
+    });
+  
+    // WebSocket connection closed handling
+    ws.on('close', () => {
+      console.log('Bot disconnected from WebSocket server');
+  
+      if (allBots.indexOf(ws) != -1) {
+        allBots.splice(allBots.indexOf(ws), 1);
+      }
+    });
+  
+  
+  
+    function decideCallorBid(ws, allDiceLength, lastBid) {  
+      clearInterval(ws.timer);
+  
+      var no = Math.floor(lastBid / 10);
+      var dice = lastBid % 10;
+      var percentage = (no / allDiceLength) * 100;
+      var newBid = no;
+  
+      if (dice == 6) {
+        newBid += 1;
+        dice = 2;
+      }
+  
+      newBid = newBid + Math.floor(Math.random() * (allDiceLength - newBid));
+      var newDice = dice + Math.floor(Math.random() * (6 - dice));
+      newBid = (newBid * 10) + newDice;
+  
+      if (lastBid == 11 || percentage <= 25) {
+        var msg = JSON.stringify({
+          action: "Bid",
+          bid: newBid,
+        });
+        ws.send(msg.toString());
+  
+      } else if (no == allDiceLength || newBid >= allDiceLength || newBid <= lastBid || percentage > 60) {
+        var msg = JSON.stringify({
+          action: "Call",
+        });
+        ws.send(msg.toString());
+      } else {
+        var msg = JSON.stringify({
+          action: "Bid",
+          bid: newBid,
+        });
+        ws.send(msg.toString());
+      }
+  
+    }
+  
+  }
