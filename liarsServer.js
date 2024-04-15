@@ -23,7 +23,6 @@ app.use(express.json());
 // Endpoint to handle room creation
 app.get('/createRoom/', (req, res) => {
   const roomId = req.query.roomid;
-  console.log(roomId)
   // Check if the room ID already exists
   if (gameRoom[roomId]) {
     return res.json({ status: 'FAIL', message: 'Room ID already exists' });
@@ -58,7 +57,7 @@ wsServer.on("request", function (request) {
   connection.on("message", function (message) {
     try {
       if (message.type === "utf8") {
-       // console.log("Received Message: " + message.utf8Data);
+        // console.log("Received Message: " + message.utf8Data);
         var response = JSON.parse(message.utf8Data);
 
         switch (response.action) {
@@ -123,15 +122,15 @@ wsServer.on("request", function (request) {
                     },
                     3000
                   );
-                }else {
-                    clearInterval(gameRoom[roomName]["gameTimer"]);
-                    gameRoom[roomName]["gameTimer"] = setInterval(
-                      function () {
-                        requestBot(roomName);
-                      },
-                      (2500 + Math.random(5000))
-                    );
-                  }
+                } else {
+                  clearInterval(gameRoom[roomName]["gameTimer"]);
+                  gameRoom[roomName]["gameTimer"] = setInterval(
+                    function () {
+                      requestBot(roomName);
+                    },
+                    (2500 + Math.random(5000))
+                  );
+                }
 
               } else {
 
@@ -148,7 +147,6 @@ wsServer.on("request", function (request) {
                 reply.action = "createRoom";
                 connection.sendUTF(JSON.stringify(reply));
               }
-              console.log("not received exact values....")
               connection.close();
             }
             break;
@@ -161,8 +159,6 @@ wsServer.on("request", function (request) {
 
                 gameRoom[connection.roomName]["lastBidder"] = connection.seatId;
                 gameRoom[connection.roomName]["currentBid"] = response.bid;
-
-                console.log("Last bid........... : ",connection.seatId,  gameRoom[connection.roomName][gameRoom[connection.roomName]["lastBidder"]].name)
 
                 var reply = new Object();
                 reply.action = "newTurn";
@@ -188,6 +184,9 @@ wsServer.on("request", function (request) {
                 }, 20000);
 
               }
+            }else
+            {
+              console.log("eklse bid")
             }
             break;
 
@@ -217,7 +216,7 @@ wsServer.on("request", function (request) {
   });
 
   connection.on("error", function () {
-   // console.log("Client has error :");
+    // console.log("Client has error :");
   });
 });
 console.log("server  started : @" + socketPort);
@@ -254,7 +253,7 @@ function startDiceRolling_fn(roomName) {
   reply.round = gameRoom[roomName]["gameRound"];
   reply.bidPos = gameRoom[roomName]["currentBid"];
   reply.players = players;
-  
+
 
   for (var i = 0; i < gameRoom[roomName].length; i++) {
     for (var n = 0; n < gameRoom[roomName][i].diceLength; n++) {
@@ -315,7 +314,7 @@ function startGame_fn(roomName) {
 function noResponse(roomName) {
   clearInterval(gameRoom[roomName]["gameTimer"]);
 
-  if (gameRoom[roomName]["currentBid"] == 126 || Math.floor(gameRoom[roomName]["currentBid"]/10) == (gameRoom[roomName]["allDice"].length)) {
+  if (gameRoom[roomName]["currentBid"] == 126 || Math.floor(gameRoom[roomName]["currentBid"] / 10) == (gameRoom[roomName]["allDice"].length)) {
     checkWinning_fn(roomName);
   } else {
 
@@ -339,8 +338,6 @@ function noResponse(roomName) {
     }
 
     gameRoom[roomName]["currentTurn"] = reply.newTurn;
-    console.log("Last bid no response ....... : ",gameRoom[roomName]["currentTurn"],  gameRoom[roomName][gameRoom[roomName]["lastBidder"]].name)
-
     gameRoom[roomName]["gameTimer"] = setInterval(function () {
       noResponse(roomName);
     }, 20000);
@@ -350,10 +347,10 @@ function noResponse(roomName) {
 function nextAutoPlay(roomName, bidNo) {
   var no = Math.floor(gameRoom[roomName]["currentBid"] / 10);
   var dice = gameRoom[roomName]["currentBid"] % 10;
-  if(dice ==1){
+  if (dice == 1) {
     dice = 2;
   }
-  var newBid = ((no+1)*10) + dice;
+  var newBid = ((no + 1) * 10) + dice;
 
   return newBid;
 }
@@ -366,17 +363,13 @@ function checkWinning_fn(roomName) {
   var liar = true;
   var dicecount = 0;
   var message = "";
-  var current = gameRoom[roomName]["currentTurn"] ;
-
-  console.log("All dices : ", gameRoom[roomName]["allDice"]);
+  var current = gameRoom[roomName]["currentTurn"];
 
   for (var i = 0; i < gameRoom[roomName]["allDice"].length; i++) {
     if (gameRoom[roomName]["allDice"][i] == 1 || gameRoom[roomName]["allDice"][i] == dice) {
       dicecount += 1;
     }
   }
-
-
 
   if (dicecount >= no) {
     liar = false;
@@ -419,9 +412,6 @@ function checkWinning_fn(roomName) {
   reply.bidNo = no;
   reply.calledDice = dice;
   reply.diceCount = dicecount;
-
-  console.log("dicecount : ", dicecount);
-  console.log("dice      : ", dice);
 
 
   for (var i = 0; i < gameRoom[roomName].length; i++) {
@@ -496,7 +486,7 @@ function findNextTurn(roomName, id) {
       break;
     }
   }
-  console.log("nextId : ",nextId)
+  console.log("nextId : ", nextId)
   return nextId;
 }
 
@@ -504,121 +494,115 @@ function findNextTurn(roomName, id) {
 
 
 function requestBot(roomName) {
-    //const ws = new WebSocket("ws://" + "localhost" + ":" + 30008);
-  const ws = new WebSocket("ws://18.207.65.3:3001");
+  //const ws = new WebSocket("ws://" + "localhost" + ":" + 30008);
+const ws = new WebSocket("ws://18.207.65.3:3001");
 
-    ws.roomName = roomName;
-    ws.seatId = -1;
-    ws.timer;
-  
-    // WebSocket connection opened handling
-    ws.on('open', () => {
-      allBots.push(ws);
-      var msg = JSON.stringify({
-        action: "InitialJoin",
-        isBot: true,
-        name: "ramesh " + Math.floor(Math.random() * 100),
-        playerID: Math.floor(Math.random() * 100),
-        roomName: roomName,
-      });
-      ws.send(msg.toString()); 
+  ws.roomName = roomName;
+  ws.seatId = -1;
+  ws.timer;
+
+  // WebSocket connection opened handling
+  ws.on('open', () => {
+    allBots.push(ws);
+    var msg = JSON.stringify({
+      action: "InitialJoin",
+      isBot: true,
+      name: "ramesh " + Math.floor(Math.random() * 100),
+      playerID: Date.now(),
+      roomName: roomName,
     });
-  
-    // WebSocket message handling
-    ws.on('message', (message) => {
-      // console.log(`Received from server: ${message}`);
-  
-      const responseMsg = JSON.parse(message);
-      switch (responseMsg.action) {
-  
-        case "createRoom":
-          ws.close();
-          break;
-  
-        case "seatPositions":
-          ws.seatId = responseMsg.seatId;
-          break;
-  
-        case "SeatFilled":
-          ws.close();
-          break;
-  
-        case "startGame":
-          if (ws.seatId == responseMsg.turn) {
-              ws.timer = setInterval(function () {
-              decideCallorBid(ws, responseMsg.allDiceLength, responseMsg.bidPos);
-            }, 3000 + Math.random() * 6000);
-  
-          }
-          break;
-  
-        case "newTurn":
-          if (ws.seatId == responseMsg.newTurn) {
-              ws.timer = setInterval(function () {
-              decideCallorBid(ws, responseMsg.allDiceLength, responseMsg.lastBid);
-            }, 3000 + Math.random() * 6000);
-  
-          }
-          break;
-  
-        case "revealCards":
-          break;
-  
-        case "winner":
-          ws.close();
-          break;
-      }
-  
-    });
-  
-    // WebSocket connection closed handling
-    ws.on('close', () => {
-      console.log('Bot disconnected from WebSocket server');
-  
-      if (allBots.indexOf(ws) != -1) {
-        allBots.splice(allBots.indexOf(ws), 1);
-      }
-    });
-  
-  
-  
-    function decideCallorBid(ws, allDiceLength, lastBid) {  
-      clearInterval(ws.timer);
-  
-      var no = Math.floor(lastBid / 10);
-      var dice = lastBid % 10;
-      var percentage = (no / allDiceLength) * 100;
-      var newBid = no;
-  
-      if (dice == 6) {
-        newBid += 1;
-        dice = 2;
-      }
-  
-      newBid = newBid + Math.floor(Math.random() * (allDiceLength - newBid));
-      var newDice = dice + Math.floor(Math.random() * (6 - dice));
-      newBid = (newBid * 10) + newDice;
-  
-      if (lastBid == 11 || percentage <= 25) {
-        var msg = JSON.stringify({
-          action: "Bid",
-          bid: newBid,
-        });
-        ws.send(msg.toString());
-  
-      } else if (no == allDiceLength || newBid >= allDiceLength || newBid <= lastBid || percentage > 60) {
-        var msg = JSON.stringify({
-          action: "Call",
-        });
-        ws.send(msg.toString());
-      } else {
-        var msg = JSON.stringify({
-          action: "Bid",
-          bid: newBid,
-        });
-        ws.send(msg.toString());
-      }
-  
+    ws.send(msg.toString());
+  });
+
+  // WebSocket message handling
+  ws.on('message', (message) => {
+    // console.log(`Received from server: ${message}`);
+
+    const responseMsg = JSON.parse(message);
+    //console.log("server resposne : ", responseMsg)
+    switch (responseMsg.action) {
+
+      case "createRoom":
+        ws.close();
+        break;
+
+      case "seatPositions":
+        ws.seatId = responseMsg.seatId;
+        break;
+
+      case "SeatFilled":
+        ws.close();
+        break;
+
+      case "startGame":
+        if (ws.seatId == responseMsg.turn) {
+          ws.timer = setInterval(function () {
+            decideCallorBid(ws, responseMsg.allDiceLength, responseMsg.bidPos);
+          }, 7000 + Math.random() * 6000);
+
+        }
+        break;
+
+      case "newTurn":
+        if (ws.seatId == responseMsg.newTurn) {
+          ws.timer = setInterval(function () {
+            decideCallorBid(ws, responseMsg.allDiceLength, responseMsg.lastBid);
+          }, 7000 + Math.random() * 6000);
+
+        }
+        break;
+
+      case "revealCards":
+        break;
+
+      case "winner":
+        ws.close();
+        break;
     }
-  
+
+  });
+
+  // WebSocket connection closed handling
+  ws.on('close', () => {
+    console.log('Bot disconnected from WebSocket server');
+
+    if (allBots.indexOf(ws) != -1) {
+      allBots.splice(allBots.indexOf(ws), 1);
+    }
+  });
+
+
+
+  function decideCallorBid(ws, allDiceLength, lastBid) {
+    clearInterval(ws.timer);
+
+    var lastPos = Math.floor(lastBid / 10);
+    if (lastPos == 0) {
+      lastPos = 1;
+    }
+
+    var lastDice = lastBid % 10;
+    if (lastDice <= 1) {
+      lastDice = 2;
+    }
+    var percentage = (lastPos / allDiceLength) * 100;
+    var newBid = lastPos + Math.floor(Math.random() * 2);
+    var newDice = lastDice + Math.floor(Math.random() * (6 - lastDice));
+
+    newBid = (newBid * 10) + newDice;
+    if ( newBid > lastBid && Math.floor(newBid/10) < allDiceLength && percentage< (30 + Math.floor(Math.random()*30))) {
+      var msg = JSON.stringify({
+        action: "Bid",
+        bid: newBid,
+      });
+      ws.send(msg.toString());
+
+    } else{
+      var msg = JSON.stringify({
+        action: "Call",
+      });
+      ws.send(msg.toString());
+    }
   }
+
+}
