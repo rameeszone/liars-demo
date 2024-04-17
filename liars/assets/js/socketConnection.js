@@ -7,7 +7,8 @@ async function runSocket(game) {
 
     gameScene = game;
    // gameClient = new WebSocket('ws://162.241.127.138:30008');
-    gameClient = new WebSocket('ws://18.207.65.3:3001');
+    //gameClient = new WebSocket('ws://localhost:30008');
+gameClient = new WebSocket('ws://18.207.65.3:3001');
     //gameClient.connect();
 
 
@@ -22,7 +23,7 @@ async function runSocket(game) {
         // console.log('Received message from server:', event.data);
 
         const responseMsg = JSON.parse(event.data);
-        console.log('.............. :', responseMsg);
+        console.log(responseMsg.action,'.............. :', responseMsg);
 
         switch (responseMsg.action) {
 

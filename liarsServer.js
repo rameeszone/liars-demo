@@ -184,8 +184,7 @@ wsServer.on("request", function (request) {
                 }, 20000);
 
               }
-            }else
-            {
+            } else {
               console.log("eklse bid")
             }
             break;
@@ -306,7 +305,6 @@ function startGame_fn(roomName) {
     noResponse(roomName);
   }, 20000);
 
-
 }
 
 
@@ -403,7 +401,7 @@ function checkWinning_fn(roomName) {
   reply.dice = dice;
   reply.liar = liar;
   reply.message = message;
-  reply.turn = gameRoom[roomName]["currentTurn"];
+  reply.turn = current;
   reply.lastPlayer = gameRoom[roomName][gameRoom[roomName]["lastBidder"]].name;
   reply.activePlayerName = gameRoom[roomName][current].name;
   reply.round = gameRoom[roomName]["gameRound"];
@@ -500,6 +498,7 @@ const ws = new WebSocket("ws://18.207.65.3:3001");
   ws.roomName = roomName;
   ws.seatId = -1;
   ws.timer;
+  ws.dice = [];
 
   // WebSocket connection opened handling
   ws.on('open', () => {
@@ -535,6 +534,8 @@ const ws = new WebSocket("ws://18.207.65.3:3001");
         break;
 
       case "startGame":
+        ws.dice = responseMsg.dice;
+        console.log(ws.dice);
         if (ws.seatId == responseMsg.turn) {
           ws.timer = setInterval(function () {
             decideCallorBid(ws, responseMsg.allDiceLength, responseMsg.bidPos);
@@ -576,6 +577,15 @@ const ws = new WebSocket("ws://18.207.65.3:3001");
   function decideCallorBid(ws, allDiceLength, lastBid) {
     clearInterval(ws.timer);
 
+    var currentDiceCount = 0;
+    for(var i=0; i<2; i++)
+    {
+      if(ws.dice[i] == Math.floor(lastBid / 10) || ws.dice[i] == 1)
+      {
+        currentDiceCount ++;
+      }
+    }
+
     var lastPos = Math.floor(lastBid / 10);
     if (lastPos == 0) {
       lastPos = 1;
@@ -587,17 +597,25 @@ const ws = new WebSocket("ws://18.207.65.3:3001");
     }
     var percentage = (lastPos / allDiceLength) * 100;
     var newBid = lastPos + Math.floor(Math.random() * 2);
-    var newDice = lastDice + Math.floor(Math.random() * (6 - lastDice));
-
+    if(lastPos <= currentDiceCount)
+    {
+      newBid = lastPos+1;
+      percentage = 0;
+    }
+    var newDice = ws.dice[Math.floor(Math.random() * 2)];// lastDice + Math.floor(Math.random() * (6 - lastDice));
+    if (newDice == 1) {
+      newDice = lastDice + Math.floor(Math.random() * (6 - lastDice));
+    }
     newBid = (newBid * 10) + newDice;
-    if ( newBid > lastBid && Math.floor(newBid/10) < allDiceLength && percentage< (30 + Math.floor(Math.random()*30))) {
+    if (newBid > lastBid && Math.floor(newBid / 10) < allDiceLength && percentage < (40 + Math.floor(Math.random() * 20))) {
       var msg = JSON.stringify({
         action: "Bid",
         bid: newBid,
       });
       ws.send(msg.toString());
 
-    } else{
+    } 
+    else{
       var msg = JSON.stringify({
         action: "Call",
       });
