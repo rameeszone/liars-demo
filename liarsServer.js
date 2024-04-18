@@ -535,7 +535,7 @@ const ws = new WebSocket("ws://18.207.65.3:3001");
 
       case "startGame":
         ws.dice = responseMsg.dice;
-        console.log(ws.dice);
+        //console.log(ws.dice);
         if (ws.seatId == responseMsg.turn) {
           ws.timer = setInterval(function () {
             decideCallorBid(ws, responseMsg.allDiceLength, responseMsg.bidPos);
@@ -597,17 +597,25 @@ const ws = new WebSocket("ws://18.207.65.3:3001");
     }
     var percentage = (lastPos / allDiceLength) * 100;
     var newBid = lastPos + Math.floor(Math.random() * 2);
-    if(lastPos <= currentDiceCount)
-    {
-      newBid = lastPos+1;
-      percentage = 0;
-    }
+   
     var newDice = ws.dice[Math.floor(Math.random() * 2)];// lastDice + Math.floor(Math.random() * (6 - lastDice));
     if (newDice == 1) {
       newDice = lastDice + Math.floor(Math.random() * (6 - lastDice));
     }
+
+    if(lastPos <= currentDiceCount)
+    {
+      newBid = lastPos+1;
+      percentage = 0;
+      newDice = ws.dice[Math.floor(Math.random() * 2)];
+      if(newDice == 1)
+      {
+          newDice = lastDice + Math.floor(Math.random() * (6 - lastDice));
+      }
+    }
     newBid = (newBid * 10) + newDice;
-    if (newBid > lastBid && Math.floor(newBid / 10) < allDiceLength && percentage < (40 + Math.floor(Math.random() * 20))) {
+
+    if (newBid > lastBid && Math.floor(newBid / 10) < allDiceLength && percentage < (30 + Math.floor(Math.random() * 20))) {
       var msg = JSON.stringify({
         action: "Bid",
         bid: newBid,

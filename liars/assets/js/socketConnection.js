@@ -7,8 +7,7 @@ async function runSocket(game) {
 
     gameScene = game;
    // gameClient = new WebSocket('ws://162.241.127.138:30008');
-    //gameClient = new WebSocket('ws://localhost:30008');
-gameClient = new WebSocket('ws://18.207.65.3:3001');
+    gameClient = new WebSocket('ws://18.207.65.3:3001');
     //gameClient.connect();
 
 
