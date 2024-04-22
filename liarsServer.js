@@ -37,6 +37,7 @@ app.get('/createRoom/', (req, res) => {
   gameRoom[roomId]["gameRound"] = 1;
   gameRoom[roomId]["allDice"] = [];
   gameRoom[roomId]["lastBidder"] = -1;
+  gameRoom[roomId]["history"] = [];
 
   return res.json({ status: 'OK', message: 'Room created successfully' });
 });
@@ -157,6 +158,8 @@ wsServer.on("request", function (request) {
 
               if (response.bid > gameRoom[connection.roomName]["currentBid"]) {
 
+
+                gameRoom[connection.roomName]["history"][connection.seatId] = response.bid;
                 gameRoom[connection.roomName]["lastBidder"] = connection.seatId;
                 gameRoom[connection.roomName]["currentBid"] = response.bid;
 
@@ -225,9 +228,9 @@ console.log("server  started : @" + socketPort);
 function startDiceRolling_fn(roomName) {
   clearInterval(gameRoom[roomName]["gameTimer"]);
 
-
   gameRoom[roomName]["allDice"] = [];
   gameRoom[roomName]["currentBid"] = 1;
+  gameRoom[roomName]["history"] = [];
 
   var players = [];
   for (var i = 0; i < gameRoom[roomName].length; i++) {
@@ -577,58 +580,101 @@ const ws = new WebSocket("ws://18.207.65.3:3001");
   function decideCallorBid(ws, allDiceLength, lastBid) {
     clearInterval(ws.timer);
 
-    var currentDiceCount = 0;
-    for(var i=0; i<2; i++)
-    {
-      if(ws.dice[i] == Math.floor(lastBid / 10) || ws.dice[i] == 1)
-      {
-        currentDiceCount ++;
-      }
-    }
-
-    var lastPos = Math.floor(lastBid / 10);
-    if (lastPos == 0) {
-      lastPos = 1;
-    }
-
-    var lastDice = lastBid % 10;
-    if (lastDice <= 1) {
-      lastDice = 2;
-    }
-    var percentage = (lastPos / allDiceLength) * 100;
-    var newBid = lastPos + Math.floor(Math.random() * 2);
-   
-    var newDice = ws.dice[Math.floor(Math.random() * 2)];// lastDice + Math.floor(Math.random() * (6 - lastDice));
-    if (newDice == 1) {
-      newDice = lastDice + Math.floor(Math.random() * (6 - lastDice));
-    }
-
-    if(lastPos <= currentDiceCount)
-    {
-      newBid = lastPos+1;
-      percentage = 0;
-      newDice = ws.dice[Math.floor(Math.random() * 2)];
-      if(newDice == 1)
-      {
-          newDice = lastDice + Math.floor(Math.random() * (6 - lastDice));
-      }
-    }
-    newBid = (newBid * 10) + newDice;
-
-    if (newBid > lastBid && Math.floor(newBid / 10) < allDiceLength && percentage < (30 + Math.floor(Math.random() * 20))) {
-      var msg = JSON.stringify({
-        action: "Bid",
-        bid: newBid,
+   // console.log("All bids history : ", gameRoom[ws.roomName]["history"]);
+    var allDice = [];
+    allDice[0] = 0;
+    allDice[1] = 0;
+    for (var i = 2; i < 7; i++) {
+      allDice[i] = 0;
+      gameRoom[ws.roomName]["history"].forEach(item => {
+        if (item % 10 == i) {
+          allDice[i] += 1
+        }
       });
-      ws.send(msg.toString());
+    }
 
-    } 
-    else{
+    var lastBidCount = Math.floor(lastBid / 10);
+    var lastBiddice = lastBid % 10;
+    var bidPercentage = Math.floor((lastBidCount / allDiceLength)* 100) ;
+
+    var currentDiceNo = 0;
+    for (var i = 0; i < 2; i++) {
+      if (ws.dice[i] == lastBiddice || ws.dice[i] == 1) {
+        currentDiceNo++;
+      }
+    }
+
+    var percentageCutoff = 50;
+    if(allDiceLength >= 6 )
+    {
+      percentageCutoff = 35 +Math.floor(Math.random()*25);
+    }
+
+    //console.log(  bidPercentage ,  percentageCutoff +"....."+ lastBidCount +"----"+ currentDiceNo+" .. "+ currentDiceNo)
+    if ((bidPercentage > percentageCutoff && (lastBidCount - currentDiceNo) >= 1) || (bidPercentage > 50 && currentDiceNo == 0)) {
       var msg = JSON.stringify({
         action: "Call",
       });
       ws.send(msg.toString());
+
+    } else {
+
+      if (lastBidCount == 0) {
+        lastBidCount = 1;
+      }
+
+      var newDice = -1;
+      var newBid = lastBidCount;
+      for (var i = 0; i < 2; i++) {
+        if (ws.dice[i] > lastBiddice) {
+          newDice = ws.dice[i];
+        }
+      }
+
+      if (newDice != -1) {
+        newBid = lastBidCount * 10 + newDice;
+      } else {
+        newBid += 1;
+        newDice = decideDice(ws.dice, allDice)
+        newBid = (newBid * 10) + newDice;
+      }
+
+
+      if (newBid > lastBid && newBid <= ((allDiceLength * 10) + 6)) {
+        var msg = JSON.stringify({
+          action: "Bid",
+          bid: newBid,
+        });
+        ws.send(msg.toString());
+      } else {
+        var msg = JSON.stringify({
+          action: "Call",
+        });
+        ws.send(msg.toString());
+      }
+
+
+
     }
+
+  }
+
+  function decideDice(dice, allDice) {
+
+    diceValue = 2;
+    if (dice[0] == dice[1] == 1) {
+      diceValue = Math.floor(2 + Math.random() * 5)
+    } else {
+      if (dice[0] != 1) {
+        diceValue = dice[0];
+      } else {
+        diceValue = dice[1];
+      }
+
+    }
+
+    return diceValue;
   }
 
 }
+
