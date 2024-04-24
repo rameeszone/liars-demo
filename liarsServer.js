@@ -580,7 +580,8 @@ const ws = new WebSocket("ws://18.207.65.3:3001");
   function decideCallorBid(ws, allDiceLength, lastBid) {
     clearInterval(ws.timer);
 
-   // console.log("All bids history : ", gameRoom[ws.roomName]["history"]);
+
+    // console.log("All bids history : ", gameRoom[ws.roomName]["history"]);
     var allDice = [];
     allDice[0] = 0;
     allDice[1] = 0;
@@ -595,7 +596,7 @@ const ws = new WebSocket("ws://18.207.65.3:3001");
 
     var lastBidCount = Math.floor(lastBid / 10);
     var lastBiddice = lastBid % 10;
-    var bidPercentage = Math.floor((lastBidCount / allDiceLength)* 100) ;
+    var bidPercentage = Math.floor((lastBidCount / allDiceLength) * 100);
 
     var currentDiceNo = 0;
     for (var i = 0; i < 2; i++) {
@@ -605,13 +606,21 @@ const ws = new WebSocket("ws://18.207.65.3:3001");
     }
 
     var percentageCutoff = 50;
-    if(allDiceLength >= 6 )
-    {
-      percentageCutoff = 35 +Math.floor(Math.random()*25);
+
+    if (allDiceLength >= 6) {
+      percentageCutoff = 37 + Math.floor(Math.random() * 15);
+
+      if ((ws.dice[0] == ws.dice[1] == lastBiddice) || (ws.dice.indexOf(lastBiddice) != -1 && ws.dice.indexOf(1) != -1)) {
+        percentageCutoff += 10;
+      } else
+        if (ws.dice.indexOf(lastBiddice) != -1 || ws.dice.indexOf(1) != -1) {
+          percentageCutoff += 6;
+        }
     }
 
     //console.log(  bidPercentage ,  percentageCutoff +"....."+ lastBidCount +"----"+ currentDiceNo+" .. "+ currentDiceNo)
     if ((bidPercentage > percentageCutoff && (lastBidCount - currentDiceNo) >= 1) || (bidPercentage > 50 && currentDiceNo == 0)) {
+
       var msg = JSON.stringify({
         action: "Call",
       });
@@ -652,29 +661,31 @@ const ws = new WebSocket("ws://18.207.65.3:3001");
         });
         ws.send(msg.toString());
       }
-
-
-
     }
 
   }
 
+
+
   function decideDice(dice, allDice) {
 
     diceValue = 2;
-    if (dice[0] == dice[1] == 1) {
+    if (dice[0] == dice[1] && dice[1] == 1) {
       diceValue = Math.floor(2 + Math.random() * 5)
     } else {
-      if (dice[0] != 1) {
-        diceValue = dice[0];
-      } else {
+      if (dice[0] == 1 && dice[1] != 1) {
         diceValue = dice[1];
-      }
-
+      } else
+        if (dice[0] != 1 && dice[1] == 1) {
+          diceValue = dice[0];
+        } else {
+          diceValue = dice[Math.floor(Math.random() * 2)]
+        }
     }
 
     return diceValue;
   }
 
 }
+
 
