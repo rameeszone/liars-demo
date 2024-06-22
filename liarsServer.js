@@ -269,7 +269,7 @@ function startDiceRolling_fn(roomName) {
 
   gameRoom[roomName]["gameTimer"] = setInterval(function () {
     startGame_fn(roomName);
-  }, 5000);
+  }, 6000);
 
 }
 
@@ -495,8 +495,7 @@ function findNextTurn(roomName, id) {
 
 
 function requestBot(roomName) {
-  //const ws = new WebSocket("ws://" + "localhost" + ":" + 30008);
-const ws = new WebSocket("ws://18.207.65.3:3001");
+  const ws = new WebSocket("ws://" + "localhost" + ":" + 3001);
 
   ws.roomName = roomName;
   ws.seatId = -1;
