@@ -413,6 +413,7 @@ function checkWinning_fn(roomName) {
   reply.bidNo = no;
   reply.calledDice = dice;
   reply.diceCount = dicecount;
+  reply.toId = gameRoom[roomName]["lastBidder"];
 
 
   for (var i = 0; i < gameRoom[roomName].length; i++) {
