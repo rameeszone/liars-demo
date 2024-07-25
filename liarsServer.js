@@ -13,7 +13,7 @@ const wsServer = new WebSocketServer({
 
 var gameRoom = [];
 var allBots = [];
-var namesArray = ["Sebastian","Preben","William","Victoria", "Natalie","Malou", "Eric"]
+var namesArray = ["Alex", "Matt", "Karl", "Peter", "Mark", "Lucy", "Sebastian","Preben","William","Victoria", "Natalie","Malou", "Eric"]
 
 const express = require('express');
 const app = express();
@@ -77,6 +77,7 @@ wsServer.on("request", function (request) {
               connection.activeConnection = 1;
 
               connection.name = response.name;
+              connection.country = response.country;
               connection.playerID = response.playerID;
               connection.dice = [];
               connection.diceLength = 2;
@@ -104,6 +105,7 @@ wsServer.on("request", function (request) {
                   var reply0 = new Object();
                   reply0.seatId = gameRoom[roomName][i].seatId;
                   reply0.name = gameRoom[roomName][i].name;
+                  reply0.country = gameRoom[roomName][i].country;
                   reply0.playerId = gameRoom[roomName][i].playerID;
                   players.push(reply0);
                 }
@@ -494,6 +496,7 @@ function findNextTurn(roomName, id) {
       break;
     }
   }
+  console.log("nextId : ", nextId)
   return nextId;
 }
 
