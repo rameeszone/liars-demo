@@ -1,6 +1,7 @@
 const http = require("http");
 const WebSocketServer = require("websocket").server;
 const WebSocket = require('ws');
+const axios = require('axios');
 
 const expressPort = 3000;
 let socketPort = 3001;
@@ -13,13 +14,12 @@ const wsServer = new WebSocketServer({
 
 var gameRoom = [];
 var allBots = [];
-var namesArray = ["Alex", "Matt", "Karl", "Peter", "Mark", "Lucy", "Sebastian","Preben","William","Victoria", "Natalie","Malou", "Eric"]
 
 const express = require('express');
 const app = express();
 
 // Middleware to parse JSON requests
-app.use(express.json());
+app.use(express.json());369
 
 // Endpoint to handle room creation
 app.get('/createRoom/', (req, res) => {
@@ -64,21 +64,43 @@ wsServer.on("request", function (request) {
 
         switch (response.action) {
           case "InitialJoin":
-            if (response.name != null && response.playerID != null && response.roomName != null && gameRoom[response.roomName] != null && gameRoom[response.roomName]["gamestarted"] == false) {
+            if (response.name != null && response.userId != null && response.roomName != null && gameRoom[response.roomName] != null && gameRoom[response.roomName]["gamestarted"] == false) {
 
-              var oldPlayer = false;
-              for (var i = 0; i < gameRoom[response.roomName].length; i++) {
-                if (gameRoom[response.roomName][i].playerID == response.playerID) {
-                  gameRoom[response.roomName][i] = connection;
-                  oldPlayer = true;
-                }
-              }
               var roomName = response.roomName;
               connection.activeConnection = 1;
+              connection.userId = response.userId;
+              connection.type = "user";
+
+
+              playerJoinRequest(connection, response.roomName);
+
+
+
+            } else {
+
+              if (gameRoom[roomName] == null) {
+                var reply = new Object();
+                reply.action = "createRoom";
+                connection.sendUTF(JSON.stringify(reply));
+              }
+              connection.close();
+            }
+            break;
+
+
+          case "InitialJoinBot":
+
+            if (response.name != null && response.userId != null && response.roomName != null && gameRoom[response.roomName] != null && gameRoom[response.roomName]["gamestarted"] == false) {
 
               connection.name = response.name;
               connection.country = response.country;
-              connection.playerID = response.playerID;
+              connection.type = "bot";
+              connection.userId = response.userId;
+              var roomName = response.roomName;
+
+
+
+
               connection.dice = [];
               connection.diceLength = 2;
               connection.roomName = -1;
@@ -86,18 +108,11 @@ wsServer.on("request", function (request) {
               connection.rip = false;
 
               if (gameRoom[roomName].length < 6) {
-                if (oldPlayer == false) {
-                  gameRoom[roomName].push(connection);
-                }
 
+                gameRoom[roomName].push(connection);
 
                 connection.roomName = roomName;
                 connection.seatId = gameRoom[roomName].length - 1;
-
-                if(response.isBot)
-                  {
-                    connection.name = namesArray[ connection.seatId ]
-                  }
 
 
                 var players = [];
@@ -106,7 +121,7 @@ wsServer.on("request", function (request) {
                   reply0.seatId = gameRoom[roomName][i].seatId;
                   reply0.name = gameRoom[roomName][i].name;
                   reply0.country = gameRoom[roomName][i].country;
-                  reply0.playerId = gameRoom[roomName][i].playerID;
+                  reply0.userId = gameRoom[roomName][i].userId;
                   players.push(reply0);
                 }
 
@@ -149,14 +164,11 @@ wsServer.on("request", function (request) {
                 connection.close();
               }
 
-            } else {
 
-              if (gameRoom[roomName] == null) {
-                var reply = new Object();
-                reply.action = "createRoom";
-                connection.sendUTF(JSON.stringify(reply));
-              }
-              connection.close();
+
+
+
+
             }
             break;
 
@@ -174,7 +186,7 @@ wsServer.on("request", function (request) {
                 var reply = new Object();
                 reply.action = "newTurn";
                 reply.lastPlayerName = gameRoom[connection.roomName][gameRoom[connection.roomName]["currentTurn"]].name;
-                reply.lastPlayerId = gameRoom[connection.roomName][gameRoom[connection.roomName]["currentTurn"]].seatId;
+                reply.lastuserId = gameRoom[connection.roomName][gameRoom[connection.roomName]["currentTurn"]].seatId;
                 reply.lastBid = response.bid;
                 reply.newTurn = findNextTurn(connection.roomName, gameRoom[connection.roomName]["currentTurn"]);
                 reply.newPlayerName = gameRoom[connection.roomName][reply.newTurn].name;
@@ -249,7 +261,7 @@ function startDiceRolling_fn(roomName) {
     var reply0 = new Object();
     reply0.seatId = gameRoom[roomName][i].seatId;
     reply0.name = gameRoom[roomName][i].name;
-    reply0.playerId = gameRoom[roomName][i].playerID;
+    reply0.userId = gameRoom[roomName][i].userId;
     reply0.diceLength = gameRoom[roomName][i].diceLength;
     reply0.rip = gameRoom[roomName][i].rip;
     players.push(reply0);
@@ -292,7 +304,7 @@ function startGame_fn(roomName) {
     var reply0 = new Object();
     reply0.seatId = gameRoom[roomName][i].seatId;
     reply0.name = gameRoom[roomName][i].name;
-    reply0.playerId = gameRoom[roomName][i].playerID;
+    reply0.userId = gameRoom[roomName][i].userId;
     reply0.diceLength = gameRoom[roomName][i].diceLength;
     reply0.rip = gameRoom[roomName][i].rip;
     players.push(reply0);
@@ -334,7 +346,7 @@ function noResponse(roomName) {
     var reply = new Object();
     reply.action = "newTurn";
     reply.lastPlayerName = gameRoom[roomName][gameRoom[roomName]["currentTurn"]].name;
-    reply.lastPlayerId = gameRoom[roomName][gameRoom[roomName]["currentTurn"]].seatId;
+    reply.lastuserId = gameRoom[roomName][gameRoom[roomName]["currentTurn"]].seatId;
     reply.lastBid = gameRoom[roomName]["currentBid"];
     reply.newTurn = findNextTurn(roomName, gameRoom[roomName]["currentTurn"]);
     reply.allDiceLength = gameRoom[roomName]["allDice"].length;
@@ -399,7 +411,7 @@ function checkWinning_fn(roomName) {
     var reply0 = new Object();
     reply0.seatId = gameRoom[roomName][i].seatId;
     reply0.name = gameRoom[roomName][i].name;
-    reply0.playerId = gameRoom[roomName][i].playerID;
+    reply0.userId = gameRoom[roomName][i].userId;
     reply0.diceLength = gameRoom[roomName][i].diceLength;
     reply0.dice = gameRoom[roomName][i].dice;
     reply0.rip = gameRoom[roomName][i].rip;
@@ -458,6 +470,9 @@ function checkStatus(roomName) {
       gameRoom[roomName][i].sendUTF(JSON.stringify(reply));
     }
 
+
+    sendWinner(gameRoom[roomName][winnerId]);
+
     gameRoom[roomName]["gameTimer"] = setInterval(function () {
       clearAll(roomName);
     }, 7000);
@@ -496,204 +511,368 @@ function findNextTurn(roomName, id) {
       break;
     }
   }
-  console.log("nextId : ", nextId)
+ // console.log("nextId : ", nextId)
   return nextId;
 }
 
 
 
-
+//requestBot(7);
 function requestBot(roomName) {
-  const ws = new WebSocket("ws://" + "localhost" + ":" + 3001);
 
-  ws.roomName = roomName;
-  ws.seatId = -1;
-  ws.timer;
-  ws.dice = [];
 
-  // WebSocket connection opened handling
-  ws.on('open', () => {
-    allBots.push(ws);
-    var msg = JSON.stringify({
-      action: "InitialJoin",
-      isBot: true,
-      name: "ramesh " + Math.floor(Math.random() * 100),
-      playerID: Date.now(),
-      roomName: roomName,
+  const boturl = 'http://gigaroi.com/Gigaroi-Web/api/customer/bot-join-room';
+  // Define the URL to which the request will be sent
+
+
+  // Define the data to be sent in the request body
+  //const data = {"roomId": roomName, "userId": connection.userId};
+
+  const data = { "roomId": roomName };
+
+
+  axios.post(boturl, data)
+    .then(response => {
+      console.log('Success:', response.data); // Handle the response data
+
+      if (response.data.success == true) {
+
+        const ws = new WebSocket("ws://" + "localhost" + ":" + 3001);
+
+        ws.roomName = roomName;
+        ws.seatId = -1;
+        ws.timer;
+        ws.dice = [];
+        ws.name = response.data.data.userName;
+        ws.country = response.data.data.countryCode;
+        ws.userId = response.data.data.botId
+
+        // WebSocket connection opened handling
+        ws.on('open', () => {
+          allBots.push(ws);
+          var msg = JSON.stringify({
+            action: "InitialJoinBot",
+            isBot: true,
+            name: response.data.data.userName, 
+            userId: response.data.data.botId,
+            roomName: roomName,
+            country: ws.country,
+            
+
+          });
+          ws.send(msg.toString());
+        });
+
+        // WebSocket message handling
+        ws.on('message', (message) => {
+          // console.log(`Received from server: ${message}`);
+
+          const responseMsg = JSON.parse(message);
+          //console.log("server resposne : ", responseMsg)
+          switch (responseMsg.action) {
+
+            case "createRoom":
+              ws.close();
+              break;
+
+            case "seatPositions":
+              ws.seatId = responseMsg.seatId;
+              break;
+
+            case "SeatFilled":
+              ws.close();
+              break;
+
+            case "startGame":
+              ws.dice = responseMsg.dice;
+              //console.log(ws.dice);
+              if (ws.seatId == responseMsg.turn) {
+                ws.timer = setInterval(function () {
+                  decideCallorBid(ws, responseMsg.allDiceLength, responseMsg.bidPos);
+                }, 7000 + Math.random() * 6000);
+
+              }
+              break;
+
+            case "newTurn":
+              if (ws.seatId == responseMsg.newTurn) {
+                ws.timer = setInterval(function () {
+                  decideCallorBid(ws, responseMsg.allDiceLength, responseMsg.lastBid);
+                }, 7000 + Math.random() * 6000);
+
+              }
+              break;
+
+            case "revealCards":
+              break;
+
+            case "winner":
+              ws.close();
+              break;
+          }
+
+        });
+
+        // WebSocket connection closed handling
+        ws.on('close', () => {
+          console.log('Bot disconnected from WebSocket server');
+
+          if (allBots.indexOf(ws) != -1) {
+            allBots.splice(allBots.indexOf(ws), 1);
+          }
+        });
+
+
+
+        function decideCallorBid(ws, allDiceLength, lastBid) {
+          clearInterval(ws.timer);
+
+          // console.log("All bids history : ", gameRoom[ws.roomName]["history"]);
+          var allDice = [];
+          allDice[0] = 0;
+          allDice[1] = 0;
+          for (var i = 2; i < 7; i++) {
+            allDice[i] = 0;
+            gameRoom[ws.roomName]["history"].forEach(item => {
+              if (item % 10 == i) {
+                allDice[i] += 1
+              }
+            });
+          }
+
+          var lastBidCount = Math.floor(lastBid / 10);
+          var lastBiddice = lastBid % 10;
+          var bidPercentage = Math.floor((lastBidCount / allDiceLength) * 100);
+
+          var currentDiceNo = 0;
+          for (var i = 0; i < 2; i++) {
+            if (ws.dice[i] == lastBiddice || ws.dice[i] == 1) {
+              currentDiceNo++;
+            }
+          }
+
+          var percentageCutoff = 50;
+
+          if (allDiceLength >= 6) {
+            percentageCutoff = 37 + Math.floor(Math.random() * 15);
+
+            if ((ws.dice[0] == ws.dice[1] == lastBiddice) || (ws.dice.indexOf(lastBiddice) != -1 && ws.dice.indexOf(1) != -1)) {
+              percentageCutoff += 10;
+            } else
+              if (ws.dice.indexOf(lastBiddice) != -1 || ws.dice.indexOf(1) != -1) {
+                percentageCutoff += 6;
+              }
+          }
+
+          //console.log(  bidPercentage ,  percentageCutoff +"....."+ lastBidCount +"----"+ currentDiceNo+" .. "+ currentDiceNo)
+          if ((bidPercentage > percentageCutoff && (lastBidCount - currentDiceNo) >= 1) || (bidPercentage > 50 && currentDiceNo == 0)) {
+
+            var msg = JSON.stringify({
+              action: "Call",
+            });
+            ws.send(msg.toString());
+
+          } else {
+
+            if (lastBidCount == 0) {
+              lastBidCount = 1;
+            }
+
+            var newDice = -1;
+            var newBid = lastBidCount;
+            for (var i = 0; i < 2; i++) {
+              if (ws.dice[i] > lastBiddice) {
+                newDice = ws.dice[i];
+              }
+            }
+
+            if (newDice != -1) {
+              newBid = lastBidCount * 10 + newDice;
+            } else {
+              newBid += 1;
+              newDice = decideDice(ws.dice, allDice)
+              newBid = (newBid * 10) + newDice;
+            }
+
+
+            if (newBid > lastBid && newBid <= ((allDiceLength * 10) + 6)) {
+              var msg = JSON.stringify({
+                action: "Bid",
+                bid: newBid,
+              });
+              ws.send(msg.toString());
+            } else {
+              var msg = JSON.stringify({
+                action: "Call",
+              });
+              ws.send(msg.toString());
+            }
+          }
+
+        }
+
+
+
+        function decideDice(dice, allDice) {
+
+          diceValue = 2;
+          if (dice[0] == dice[1] && dice[1] == 1) {
+            diceValue = Math.floor(2 + Math.random() * 5)
+          } else {
+            if (dice[0] == 1 && dice[1] != 1) {
+              diceValue = dice[1];
+            } else
+              if (dice[0] != 1 && dice[1] == 1) {
+                diceValue = dice[0];
+              } else {
+                diceValue = dice[Math.floor(Math.random() * 2)]
+              }
+          }
+
+          return diceValue;
+        }
+
+      }
+
     });
-    ws.send(msg.toString());
-  });
-
-  // WebSocket message handling
-  ws.on('message', (message) => {
-    // console.log(`Received from server: ${message}`);
-
-    const responseMsg = JSON.parse(message);
-    //console.log("server resposne : ", responseMsg)
-    switch (responseMsg.action) {
-
-      case "createRoom":
-        ws.close();
-        break;
-
-      case "seatPositions":
-        ws.seatId = responseMsg.seatId;
-        break;
-
-      case "SeatFilled":
-        ws.close();
-        break;
-
-      case "startGame":
-        ws.dice = responseMsg.dice;
-        //console.log(ws.dice);
-        if (ws.seatId == responseMsg.turn) {
-          ws.timer = setInterval(function () {
-            decideCallorBid(ws, responseMsg.allDiceLength, responseMsg.bidPos);
-          }, 7000 + Math.random() * 6000);
-
-        }
-        break;
-
-      case "newTurn":
-        if (ws.seatId == responseMsg.newTurn) {
-          ws.timer = setInterval(function () {
-            decideCallorBid(ws, responseMsg.allDiceLength, responseMsg.lastBid);
-          }, 7000 + Math.random() * 6000);
-
-        }
-        break;
-
-      case "revealCards":
-        break;
-
-      case "winner":
-        ws.close();
-        break;
-    }
-
-  });
-
-  // WebSocket connection closed handling
-  ws.on('close', () => {
-    console.log('Bot disconnected from WebSocket server');
-
-    if (allBots.indexOf(ws) != -1) {
-      allBots.splice(allBots.indexOf(ws), 1);
-    }
-  });
 
 
 
-  function decideCallorBid(ws, allDiceLength, lastBid) {
-    clearInterval(ws.timer);
-
-
-    // console.log("All bids history : ", gameRoom[ws.roomName]["history"]);
-    var allDice = [];
-    allDice[0] = 0;
-    allDice[1] = 0;
-    for (var i = 2; i < 7; i++) {
-      allDice[i] = 0;
-      gameRoom[ws.roomName]["history"].forEach(item => {
-        if (item % 10 == i) {
-          allDice[i] += 1
-        }
-      });
-    }
-
-    var lastBidCount = Math.floor(lastBid / 10);
-    var lastBiddice = lastBid % 10;
-    var bidPercentage = Math.floor((lastBidCount / allDiceLength) * 100);
-
-    var currentDiceNo = 0;
-    for (var i = 0; i < 2; i++) {
-      if (ws.dice[i] == lastBiddice || ws.dice[i] == 1) {
-        currentDiceNo++;
-      }
-    }
-
-    var percentageCutoff = 50;
-
-    if (allDiceLength >= 6) {
-      percentageCutoff = 37 + Math.floor(Math.random() * 15);
-
-      if ((ws.dice[0] == ws.dice[1] == lastBiddice) || (ws.dice.indexOf(lastBiddice) != -1 && ws.dice.indexOf(1) != -1)) {
-        percentageCutoff += 10;
-      } else
-        if (ws.dice.indexOf(lastBiddice) != -1 || ws.dice.indexOf(1) != -1) {
-          percentageCutoff += 6;
-        }
-    }
-
-    //console.log(  bidPercentage ,  percentageCutoff +"....."+ lastBidCount +"----"+ currentDiceNo+" .. "+ currentDiceNo)
-    if ((bidPercentage > percentageCutoff && (lastBidCount - currentDiceNo) >= 1) || (bidPercentage > 50 && currentDiceNo == 0)) {
-
-      var msg = JSON.stringify({
-        action: "Call",
-      });
-      ws.send(msg.toString());
-
-    } else {
-
-      if (lastBidCount == 0) {
-        lastBidCount = 1;
-      }
-
-      var newDice = -1;
-      var newBid = lastBidCount;
-      for (var i = 0; i < 2; i++) {
-        if (ws.dice[i] > lastBiddice) {
-          newDice = ws.dice[i];
-        }
-      }
-
-      if (newDice != -1) {
-        newBid = lastBidCount * 10 + newDice;
-      } else {
-        newBid += 1;
-        newDice = decideDice(ws.dice, allDice)
-        newBid = (newBid * 10) + newDice;
-      }
-
-
-      if (newBid > lastBid && newBid <= ((allDiceLength * 10) + 6)) {
-        var msg = JSON.stringify({
-          action: "Bid",
-          bid: newBid,
-        });
-        ws.send(msg.toString());
-      } else {
-        var msg = JSON.stringify({
-          action: "Call",
-        });
-        ws.send(msg.toString());
-      }
-    }
-
-  }
 
 
 
-  function decideDice(dice, allDice) {
-
-    diceValue = 2;
-    if (dice[0] == dice[1] && dice[1] == 1) {
-      diceValue = Math.floor(2 + Math.random() * 5)
-    } else {
-      if (dice[0] == 1 && dice[1] != 1) {
-        diceValue = dice[1];
-      } else
-        if (dice[0] != 1 && dice[1] == 1) {
-          diceValue = dice[0];
-        } else {
-          diceValue = dice[Math.floor(Math.random() * 2)]
-        }
-    }
-
-    return diceValue;
-  }
 
 }
+
+
+
+const url = 'http://gigaroi.com/Gigaroi-Web/api/customer/user-join-room';
+
+
+//playerJoinRequest()
+function playerJoinRequest(connection, roomName) {
+
+  const data = { "roomId": roomName, "userId": connection.userId };
+
+  // Make the POST request using axios
+  axios.post(url, data)
+    .then(response => {
+      console.log('Success:', response.data); // Handle the response data
+
+      if (response.data.success == true) {
+
+        connection.name = response.data.data.userName;
+        connection.country = response.data.data.countryCode;
+
+
+        console.log(connection.name)
+        console.log(connection.country)
+
+
+        connection.dice = [];
+        connection.diceLength = 2;
+        connection.roomName = -1;
+        connection.seatId = -1;
+        connection.rip = false;
+
+        if (gameRoom[roomName].length < 6) {
+
+          gameRoom[roomName].push(connection);
+
+          connection.roomName = roomName;
+          connection.seatId = gameRoom[roomName].length - 1;
+
+
+          var players = [];
+          for (var i = 0; i < gameRoom[roomName].length; i++) {
+            var reply0 = new Object();
+            reply0.seatId = gameRoom[roomName][i].seatId;
+            reply0.name = gameRoom[roomName][i].name;
+            reply0.country = gameRoom[roomName][i].country;
+            reply0.userId = gameRoom[roomName][i].userId;
+            players.push(reply0);
+          }
+
+
+          var reply = new Object();
+          reply.action = "seatPositions";
+          reply.players = players;
+          reply.newJoin = connection.name;
+
+          for (var j = 0; j < gameRoom[roomName].length; j++) {
+            reply.seatId = j;
+            gameRoom[roomName][j].sendUTF(JSON.stringify(reply));
+          }
+
+
+          if (gameRoom[roomName].length == 6) {
+            gameRoom[roomName]["gamestarted"] = true;
+            clearInterval(gameRoom[roomName]["gameTimer"]);
+            gameRoom[roomName]["gameTimer"] = setInterval(
+              function () {
+                startDiceRolling_fn(roomName);
+              },
+              3000
+            );
+          } else {
+            clearInterval(gameRoom[roomName]["gameTimer"]);
+            gameRoom[roomName]["gameTimer"] = setInterval(
+              function () {
+                requestBot(roomName);
+              },
+              (2500 + Math.random(5000))
+            );
+          }
+
+        } else {
+
+          var reply = new Object();
+          reply.action = "SeatFilled";
+          connection.sendUTF(JSON.stringify(reply));
+          connection.close();
+        }
+
+
+
+      } else {
+        connection.close()
+      }
+
+    })
+    .catch(error => {
+      console.error('Error:', error); // Handle any errors that occur
+    });
+}
+
+
+
+
+
+//playerJoinRequest()
+function sendWinner(connection) {
+  const winnerUrl = 'http://gigaroi.com/Gigaroi-Web/api/customer/add-winner';
+  const data = { "roomId": connection.roomName, "winnerId": connection.userId, "type": connection.type };
+
+  console.log("winner data type : ", data)
+
+  // Make the POST request using axios
+  axios.post(winnerUrl, data)
+    .then(response => {
+      console.log('Success:', response.data); // Handle the response data
+      if (response.data.success == true) {
+
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error); // Handle any errors that occur
+    });
+}
+
+
+
+function printerrorLogs(error) {
+  console.log("response error : ", error)
+}
+
 
 
