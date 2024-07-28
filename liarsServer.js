@@ -19,7 +19,7 @@ const express = require('express');
 const app = express();
 
 // Middleware to parse JSON requests
-app.use(express.json());369
+app.use(express.json());
 
 // Endpoint to handle room creation
 app.get('/createRoom/', (req, res) => {
@@ -64,7 +64,8 @@ wsServer.on("request", function (request) {
 
         switch (response.action) {
           case "InitialJoin":
-            if (response.name != null && response.userId != null && response.roomName != null && gameRoom[response.roomName] != null && gameRoom[response.roomName]["gamestarted"] == false) {
+            console.log(response.userId,response.roomName, gameRoom[response.roomName]["gamestarted"]);
+            if (response.userId != null && response.roomName != null && gameRoom[response.roomName] != null && gameRoom[response.roomName]["gamestarted"] == false) {
 
               var roomName = response.roomName;
               connection.activeConnection = 1;
@@ -78,6 +79,7 @@ wsServer.on("request", function (request) {
 
             } else {
 
+              console.log("room not created ")
               if (gameRoom[roomName] == null) {
                 var reply = new Object();
                 reply.action = "createRoom";
@@ -835,6 +837,7 @@ function playerJoinRequest(connection, roomName) {
 
 
       } else {
+        console.log("player status false ")
         connection.close()
       }
 
