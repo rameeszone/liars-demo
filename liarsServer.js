@@ -64,7 +64,7 @@ wsServer.on("request", function (request) {
 
         switch (response.action) {
           case "InitialJoin":
-            console.log(response.userId,response.roomName, gameRoom[response.roomName]["gamestarted"]);
+            console.log(response.userId, response.roomName, gameRoom[response.roomName]["gamestarted"]);
             if (response.userId != null && response.roomName != null && gameRoom[response.roomName] != null && gameRoom[response.roomName]["gamestarted"] == false) {
 
               var roomName = response.roomName;
@@ -72,11 +72,7 @@ wsServer.on("request", function (request) {
               connection.userId = response.userId;
               connection.type = "user";
 
-
               playerJoinRequest(connection, response.roomName);
-
-
-
             } else {
 
               console.log("room not created ")
@@ -165,12 +161,6 @@ wsServer.on("request", function (request) {
                 connection.sendUTF(JSON.stringify(reply));
                 connection.close();
               }
-
-
-
-
-
-
             }
             break;
 
@@ -401,11 +391,14 @@ function checkWinning_fn(roomName) {
     gameRoom[roomName]["currentTurn"] = gameRoom[roomName]["lastBidder"];
     message = "Liar "
 
+    sendLosser(gameRoom[roomName][gameRoom[roomName]["currentTurn"]]);
   } else {
 
     gameRoom[roomName][gameRoom[roomName]["lastBidder"]].rip = true;
     gameRoom[roomName][gameRoom[roomName]["lastBidder"]].diceLength = 0;
     message = "honest "
+
+    sendLosser(gameRoom[roomName][gameRoom[roomName]["lastBidder"]]);
   }
 
   var players = [];
@@ -513,7 +506,7 @@ function findNextTurn(roomName, id) {
       break;
     }
   }
- // console.log("nextId : ", nextId)
+  // console.log("nextId : ", nextId)
   return nextId;
 }
 
@@ -555,11 +548,11 @@ function requestBot(roomName) {
           var msg = JSON.stringify({
             action: "InitialJoinBot",
             isBot: true,
-            name: response.data.data.userName, 
+            name: response.data.data.userName,
             userId: response.data.data.botId,
             roomName: roomName,
             country: ws.country,
-            
+
 
           });
           ws.send(msg.toString());
@@ -869,6 +862,29 @@ function sendWinner(connection) {
     .catch(error => {
       console.error('Error:', error); // Handle any errors that occur
     });
+}
+
+
+function sendLosser(connection) {
+  if (connection.type == "user") {
+    const losserUrl = 'http://gigaroi.com/Gigaroi-Web/api/customer/add-loser';
+    const data = { "roomId": connection.roomName, "userId": connection.userId };
+
+    console.log("losserUrl data type : ", data)
+
+    // Make the POST request using axios
+    axios.post(losserUrl, data)
+      .then(response => {
+        console.log('Success:', response.data); // Handle the response data
+        if (response.data.success == true) {
+
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error); // Handle any errors that occur
+      });
+
+  }
 }
 
 
