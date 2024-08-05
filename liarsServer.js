@@ -23,6 +23,7 @@ app.use(express.json());
 
 // Endpoint to handle room creation
 app.get('/createRoom/', (req, res) => {
+  console.log(" : ",req.query.roomid);
   const roomId = req.query.roomid;
   // Check if the room ID already exists
   if (gameRoom[roomId]) {
@@ -64,7 +65,7 @@ wsServer.on("request", function (request) {
 
         switch (response.action) {
           case "InitialJoin":
-            console.log(response.userId, response.roomName, gameRoom[response.roomName]["gamestarted"]);
+            console.log(response.userId, response.roomName);
             if (response.userId != null && response.roomName != null && gameRoom[response.roomName] != null && gameRoom[response.roomName]["gamestarted"] == false) {
 
               var roomName = response.roomName;
@@ -388,10 +389,13 @@ function checkWinning_fn(roomName) {
     liar = false;
     gameRoom[roomName][gameRoom[roomName]["currentTurn"]].rip = true;
     gameRoom[roomName][gameRoom[roomName]["currentTurn"]].diceLength = 0;
+
+    sendLosser(gameRoom[roomName][gameRoom[roomName]["currentTurn"]]);
+
     gameRoom[roomName]["currentTurn"] = gameRoom[roomName]["lastBidder"];
     message = "Liar "
 
-    sendLosser(gameRoom[roomName][gameRoom[roomName]["currentTurn"]]);
+   
   } else {
 
     gameRoom[roomName][gameRoom[roomName]["lastBidder"]].rip = true;
@@ -748,6 +752,7 @@ const url = 'http://gigaroi.com/Gigaroi-Web/api/customer/user-join-room';
 function playerJoinRequest(connection, roomName) {
 
   const data = { "roomId": roomName, "userId": connection.userId };
+  console.log(data);
 
   // Make the POST request using axios
   axios.post(url, data)
@@ -760,8 +765,8 @@ function playerJoinRequest(connection, roomName) {
         connection.country = response.data.data.countryCode;
 
 
-        console.log(connection.name)
-        console.log(connection.country)
+       // console.log(connection.name)
+      //  console.log(connection.country)
 
 
         connection.dice = [];
@@ -864,9 +869,9 @@ function sendWinner(connection) {
     });
 }
 
-
-function sendLosser(connection) {
-  if (connection.type == "user") {
+//sendLosser();
+function sendLosser(connection) { // 
+ if (connection.type == "user") {
     const losserUrl = 'http://gigaroi.com/Gigaroi-Web/api/customer/add-loser';
     const data = { "roomId": connection.roomName, "userId": connection.userId };
 
@@ -875,13 +880,13 @@ function sendLosser(connection) {
     // Make the POST request using axios
     axios.post(losserUrl, data)
       .then(response => {
-        console.log('Success:', response.data); // Handle the response data
+      // console.log('Success:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::', response); // Handle the response data
         if (response.data.success == true) {
 
         }
       })
       .catch(error => {
-        console.error('Error:', error); // Handle any errors that occur
+        console.error('Error:>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>', error); // Handle any errors that occur
       });
 
   }
