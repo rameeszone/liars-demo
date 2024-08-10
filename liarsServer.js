@@ -520,7 +520,7 @@ function findNextTurn(roomName, id) {
 function requestBot(roomName) {
 
 
-  const boturl = 'http://gigaroi.com/Gigaroi-Web/api/customer/bot-join-room';
+  const boturl = 'https://gigaroi.com/Gigaroi-Web/api/customer/bot-join-room';
   // Define the URL to which the request will be sent
 
 
@@ -745,7 +745,7 @@ function requestBot(roomName) {
 
 
 
-const url = 'http://gigaroi.com/Gigaroi-Web/api/customer/user-join-room';
+const url = 'https://gigaroi.com/Gigaroi-Web/api/customer/user-join-room';
 
 
 //playerJoinRequest()
@@ -851,7 +851,7 @@ function playerJoinRequest(connection, roomName) {
 
 //playerJoinRequest()
 function sendWinner(connection) {
-  const winnerUrl = 'http://gigaroi.com/Gigaroi-Web/api/customer/add-winner';
+  const winnerUrl = 'https://gigaroi.com/Gigaroi-Web/api/customer/add-winner';
   const data = { "roomId": connection.roomName, "winnerId": connection.userId, "type": connection.type };
 
   console.log("winner data type : ", data)
@@ -872,7 +872,7 @@ function sendWinner(connection) {
 //sendLosser();
 function sendLosser(connection) { // 
  if (connection.type == "user") {
-    const losserUrl = 'http://gigaroi.com/Gigaroi-Web/api/customer/add-loser';
+    const losserUrl = 'https://gigaroi.com/Gigaroi-Web/api/customer/add-loser';
     const data = { "roomId": connection.roomName, "userId": connection.userId };
 
     console.log("losserUrl data type : ", data)
