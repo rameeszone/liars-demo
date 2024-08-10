@@ -1,0 +1,16 @@
+{
+    "pack": {
+        "files": [
+            {
+                "type": "audio",
+                "key": "winSound",
+                "url": "assets/sound/GameWin.wav"
+            },
+            {
+                "type": "audio",
+                "key": "crossSound",
+                "url": "assets/sound/cutting.wav"
+            }
+        ]
+    }
+}
