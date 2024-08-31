@@ -23,7 +23,7 @@ app.use(express.json());
 
 // Endpoint to handle room creation
 app.get('/createRoom/', (req, res) => {
-  console.log(" : ",req.query.roomid);
+  console.log(" : ", req.query.roomid);
   const roomId = req.query.roomid;
   // Check if the room ID already exists
   if (gameRoom[roomId]) {
@@ -395,7 +395,7 @@ function checkWinning_fn(roomName) {
     gameRoom[roomName]["currentTurn"] = gameRoom[roomName]["lastBidder"];
     message = "Liar "
 
-   
+
   } else {
 
     gameRoom[roomName][gameRoom[roomName]["lastBidder"]].rip = true;
@@ -525,8 +525,6 @@ function requestBot(roomName) {
 
 
   // Define the data to be sent in the request body
-  //const data = {"roomId": roomName, "userId": connection.userId};
-
   const data = { "roomId": roomName };
 
 
@@ -546,14 +544,19 @@ function requestBot(roomName) {
         ws.country = response.data.data.countryCode;
         ws.userId = response.data.data.botId
 
+        /* 
+                  ws.name = "shiv" + Math.floor(Math.random() * 1000); // response.data.data.userName;
+                  ws.country = "EN";// response.data.data.countryCode;
+                  ws.userId = "" + Math.floor(Math.random() * 1000);//response.data.data.botId 
+         */
         // WebSocket connection opened handling
         ws.on('open', () => {
           allBots.push(ws);
           var msg = JSON.stringify({
             action: "InitialJoinBot",
             isBot: true,
-            name: response.data.data.userName,
-            userId: response.data.data.botId,
+            name: ws.name,
+            userId: ws.userId,
             roomName: roomName,
             country: ws.country,
 
@@ -685,6 +688,10 @@ function requestBot(roomName) {
               }
             }
 
+
+
+
+
             if (newDice != -1) {
               newBid = lastBidCount * 10 + newDice;
             } else {
@@ -695,16 +702,52 @@ function requestBot(roomName) {
 
 
             if (newBid > lastBid && newBid <= ((allDiceLength * 10) + 6)) {
+
+
+              switch (allDiceLength) {
+                case 12: if (newBid < 40) {
+                  newBid = ((4 + Math.floor(Math.random() * 2)) * 10) + newDice;
+                  console.log("inside 12 : ", newBid)
+                }
+                  break;
+
+                case 10: if (newBid < 30) {
+                  newBid = ((3 + Math.floor(Math.random() * 2)) * 10) + newDice;
+                  console.log("inside 10 : ", newBid)
+                }
+                  break;
+
+                case 8: if (newBid < 20) {
+                  newBid = ((2 + Math.floor(Math.random() * 3)) * 10) + newDice;
+                  console.log("inside 8 : ", newBid)
+                }
+                  break;
+
+                case 6: if (newBid < 20) {
+                  newBid = (2 * 10) + newDice;
+                  console.log("inside 6 : ", newBid)
+                }
+                  break;
+
+                //12 dice= min 4-5 something
+                /* 10 dice= min 3-4 something
+                8 Dice = min 2-4 something
+                6 dice = min 2 something */
+              }
+
               var msg = JSON.stringify({
                 action: "Bid",
                 bid: newBid,
               });
               ws.send(msg.toString());
+
             } else {
+
               var msg = JSON.stringify({
                 action: "Call",
               });
               ws.send(msg.toString());
+
             }
           }
 
@@ -735,12 +778,6 @@ function requestBot(roomName) {
 
     });
 
-
-
-
-
-
-
 }
 
 
@@ -765,9 +802,8 @@ function playerJoinRequest(connection, roomName) {
         connection.country = response.data.data.countryCode;
 
 
-       // console.log(connection.name)
-      //  console.log(connection.country)
-
+        //  connection.name = "Raj" + Math.floor(Math.random() * 10);
+        // connection.country = "EN";//response.data.data.countryCode;
 
         connection.dice = [];
         connection.diceLength = 2;
@@ -841,7 +877,11 @@ function playerJoinRequest(connection, roomName) {
 
     })
     .catch(error => {
-      console.error('Error:', error); // Handle any errors that occur
+      {
+        console.log("player status false ")
+        connection.close()
+      }
+      // console.error('Error:', error); // Handle any errors that occur
     });
 }
 
@@ -871,7 +911,7 @@ function sendWinner(connection) {
 
 //sendLosser();
 function sendLosser(connection) { // 
- if (connection.type == "user") {
+  if (connection.type == "user") {
     const losserUrl = 'https://gigaroi.com/Gigaroi-Web/api/customer/add-loser';
     const data = { "roomId": connection.roomName, "userId": connection.userId };
 
@@ -880,7 +920,7 @@ function sendLosser(connection) { //
     // Make the POST request using axios
     axios.post(losserUrl, data)
       .then(response => {
-      // console.log('Success:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::', response); // Handle the response data
+        // console.log('Success:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::', response); // Handle the response data
         if (response.data.success == true) {
 
         }
