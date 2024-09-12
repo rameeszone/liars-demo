@@ -106,7 +106,7 @@ wsServer.on("request", function (request) {
               connection.seatId = -1;
               connection.rip = false;
 
-              if (gameRoom[roomName].length < 6) {
+              if (gameRoom[roomName].length < 5) {
 
                 gameRoom[roomName].push(connection);
 
@@ -136,7 +136,7 @@ wsServer.on("request", function (request) {
                 }
 
 
-                if (gameRoom[roomName].length == 6) {
+                if (gameRoom[roomName].length == 5) {
                   gameRoom[roomName]["gamestarted"] = true;
                   clearInterval(gameRoom[roomName]["gameTimer"]);
                   gameRoom[roomName]["gameTimer"] = setInterval(
@@ -470,7 +470,7 @@ function checkStatus(roomName) {
     }
 
 
-    sendWinner(gameRoom[roomName][winnerId]);
+   sendWinner(gameRoom[roomName][winnerId]);
 
     gameRoom[roomName]["gameTimer"] = setInterval(function () {
       clearAll(roomName);
@@ -528,7 +528,7 @@ function requestBot(roomName) {
   const data = { "roomId": roomName };
 
 
-  axios.post(boturl, data)
+   axios.post(boturl, data)
     .then(response => {
       console.log('Success:', response.data); // Handle the response data
 
@@ -540,15 +540,15 @@ function requestBot(roomName) {
         ws.seatId = -1;
         ws.timer;
         ws.dice = [];
-        ws.name = response.data.data.userName;
+         ws.name = response.data.data.userName;
         ws.country = response.data.data.countryCode;
         ws.userId = response.data.data.botId
-
-        /* 
-                  ws.name = "shiv" + Math.floor(Math.random() * 1000); // response.data.data.userName;
+ 
+         
+               /*    ws.name = "shiv" + Math.floor(Math.random() * 1000); // response.data.data.userName;
                   ws.country = "EN";// response.data.data.countryCode;
-                  ws.userId = "" + Math.floor(Math.random() * 1000);//response.data.data.botId 
-         */
+                  ws.userId = "" + Math.floor(Math.random() * 1000);//response.data.data.botId  */
+         
         // WebSocket connection opened handling
         ws.on('open', () => {
           allBots.push(ws);
@@ -776,7 +776,7 @@ function requestBot(roomName) {
 
       }
 
-    });
+    }); 
 
 }
 
@@ -792,7 +792,7 @@ function playerJoinRequest(connection, roomName) {
   console.log(data);
 
   // Make the POST request using axios
-  axios.post(url, data)
+   axios.post(url, data)
     .then(response => {
       console.log('Success:', response.data); // Handle the response data
 
@@ -801,8 +801,8 @@ function playerJoinRequest(connection, roomName) {
         connection.name = response.data.data.userName;
         connection.country = response.data.data.countryCode;
 
-
-        //  connection.name = "Raj" + Math.floor(Math.random() * 10);
+ 
+         // connection.name = "Raj" + Math.floor(Math.random() * 10);
         // connection.country = "EN";//response.data.data.countryCode;
 
         connection.dice = [];
@@ -811,7 +811,7 @@ function playerJoinRequest(connection, roomName) {
         connection.seatId = -1;
         connection.rip = false;
 
-        if (gameRoom[roomName].length < 6) {
+        if (gameRoom[roomName].length < 5) {
 
           gameRoom[roomName].push(connection);
 
@@ -841,7 +841,7 @@ function playerJoinRequest(connection, roomName) {
           }
 
 
-          if (gameRoom[roomName].length == 6) {
+          if (gameRoom[roomName].length ==5) {
             gameRoom[roomName]["gamestarted"] = true;
             clearInterval(gameRoom[roomName]["gameTimer"]);
             gameRoom[roomName]["gameTimer"] = setInterval(
@@ -882,7 +882,7 @@ function playerJoinRequest(connection, roomName) {
         connection.close()
       }
       // console.error('Error:', error); // Handle any errors that occur
-    });
+    }); 
 }
 
 
