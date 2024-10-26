@@ -31,10 +31,21 @@
       "you_won": "YOU \nWON",
       "won": "WON",
       "you_calls": "YOU\nCALLS",
-
       "game_will_start_soon": "Game will start soon.",
       "congratulations": "Congratulations ",
-      "waiting_for_p": "Waiting \n for P"
+      "waiting_for_p": "Waiting \n for P",
+      "call": "CALL",
+      "bid": "BID",
+      "redirectBtn": "BACK TO GIGAROI",
+      "gigatakeBack": "TAKE ME BACK TO GIGAROI",
+      "stayBack": "STAY AND WATCH THE GAME",
+      "roomCreationFailed": "Unable to join Game. \n Room creation failed.",
+      "internetDisconnectedAttempt": "Internet Disconnected. Attempting to reconnect.",
+      "reconnecting": "We noticed you got disconnected and now we are taking you back live to the ongoing round.",
+      "noNetwrokConnection": "No Network Connection.",
+      
+      "try_again": "Try Again",
+      "go_back": "Go Back"
       
     },
     "da": {
@@ -69,10 +80,21 @@
       "you_won": "DU \nVANDT",
       "won": "VANDT",
       "you_calls": "DU \nLØFTEDE",
-
       "game_will_start_soon": "Spillet starter snart.",
       "congratulations": "Tillykke ",
-      "waiting_for_p": "Venter på \nP"
+      "waiting_for_p": "Venter på \nP",
+      "redirectBtn": "TILBAGE TIL GIGAROI",
+      "gigatakeBack": "TAG MIG TILBAGE TIL GIGAROI ",
+      "stayBack": "BLIV OG SE RESTEN AF RUNDEN",
+      "bid": "BUD",
+      "call": "KALD",
+      "roomCreationFailed": "Kunne ikke deltage i spillet. Oprettelse af rum mislykkedes.",
+      "internetDisconnectedAttempt": "Internetforbindelse afbrudt. Forsøger at genoprette forbindelse.",
+      "reconnecting": "Vi bemærkede, at du blev afbrudt, og nu tager vi dig tilbage til den igangværende runde.",
+      "noNetwrokConnection": "Ingen netværksforbindelse",
+      
+      "try_again": "PRØV IGEN",
+      "go_back": "Gå tilbage"
       
     },
     "sv": {
@@ -110,7 +132,20 @@
 
       "game_will_start_soon": "Spelet börjar snart.",
       "congratulations": "Grattis ",
-      "waiting_for_p": "Väntar på \nP"
+      "waiting_for_p": "Väntar på \nP",
+
+      "call": "KALLA",
+      "bid": "BUD",
+      "redirectBtn": "TILLBAKA TILL GIGAROI",
+      "gigatakeBack": "TA MIG TILLBAKA TILL GIGAROI",
+      "stayBack": "STANNA OCH TITTA PÅ SPELET",
+      "roomCreationFailed": "Kunde inte gå med i spelet. Rumsuppkoppling misslyckades.",
+      "internetDisconnectedAttempt": "Internetanslutningen bortkopplad. Försöker återansluta.",
+      "reconnecting": "Vi märkte att du kopplades bort och nu tar vi dig tillbaka till den pågående rundan.",
+      "noNetwrokConnection": "Ingen nätverksanslutning.",
+      
+      "try_again": "FÖRSÖK IGEN",
+      "go_back": "Gå tillbaka"
       
     },
     "de": {
@@ -145,10 +180,20 @@
       "you_won": "DU HAST \nGEWONNEN",
       "won": "GEWONNEN",
       "you_calls": "DU HAST \nGEHOBEN",
-
       "game_will_start_soon": "Das Spiel beginnt bald.",
-      "congratulations": "Glückwunsch ",
-      "waiting_for_p": "Warten auf \nP"
+      "congratulations": "Herzlichen Glückwunsch ",
+      "waiting_for_p": "Warten auf \nP",
+      "call": "AUFRUF",
+      "bid": "GEBOT",
+      "redirectBtn": "ZURÜCK ZU GIGAROI",
+      "gigatakeBack": "BRING MICH ZURÜCK ZU GIGAROI",
+      "stayBack": "BLEIB UND SCHAU DIR DAS SPIEL AN",
+      "roomCreationFailed": "Konnte dem Spiel nicht beitreten. Raumerstellung fehlgeschlagen.",
+      "internetDisconnectedAttempt": "Internetverbindung unterbrochen. Versuche, die Verbindung wiederherzustellen.",
+      "reconnecting": "Wir haben bemerkt, dass du die Verbindung verloren hast, und nun bringen wir dich zurück zur laufenden Runde.",
+      "noNetwrokConnection": "Keine Netzwerkverbindung.",
+      "try_again": "VERSUCHE ES ERNEUT",
+      "go_back": "Geh zurück"  
       
     }
   }
