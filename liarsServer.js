@@ -472,11 +472,12 @@ function checkWinning_fn(roomName) {
         gameRoom[roomName][gameRoom[roomName]["currentTurn"]].diceLength = 0;
 
         sendLosser(gameRoom[roomName][gameRoom[roomName]["currentTurn"]]);
+        gameRoom[roomName]["log"].push({ "Seat ": gameRoom[roomName][gameRoom[roomName]["currentTurn"]].seatId, "Name ": gameRoom[roomName][gameRoom[roomName]["currentTurn"]].name, "Status ": "LOST : LIAR", "Dice ": gameRoom[roomName][gameRoom[roomName]["currentTurn"]].dice })
 
         gameRoom[roomName]["currentTurn"] = gameRoom[roomName]["lastBidder"];
         message = "Liar "
 
-        gameRoom[roomName]["log"].push({ "Seat ": gameRoom[roomName][gameRoom[roomName]["currentTurn"]].seatId, "Name ": gameRoom[roomName][gameRoom[roomName]["currentTurn"]].name, "Status ": "LOST : LIAR", "Dice ": gameRoom[roomName][gameRoom[roomName]["currentTurn"]].dice })
+        
 
     } else {
 
@@ -555,7 +556,7 @@ function checkStatus(roomName) {
 
         sendWinner(gameRoom[roomName][winnerId]);
         gameRoom[roomName]["gameStatus"] = "gameOver";
-        gameRoom[roomName]["log"].push({ "Seat ": gameRoom[roomName][winnerId].seatId, "Name ": gameRoom[roomName][winnerId].name, "Winner ": "" })
+        gameRoom[roomName]["log"].push({ "Seat ": gameRoom[roomName][winnerId].seatId, "Name ": gameRoom[roomName][winnerId].name, "Status": "Winner" })
 
         sendLogs(roomName);
 
